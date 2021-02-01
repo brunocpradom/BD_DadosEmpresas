@@ -1,16 +1,7 @@
 import pymongo
+from models.models import BancoDeDadosMongoDB
 
-def conexão_BD():
-    """Essa função estabele a conexão com o banco de dados. Poderia colocar 
-    ela em outro arquivo. E conforme o banco de dados que estiver usando, eu 
-    a modificaria.
-    """
-    client = MongoClient()
-    db = client.dados_empresas
-    empresas = db.empresas
-    
-    return empresas
-    
+        
 def situacao_cadastral(self,texto,sit):
     """Essa função seria uma função pra ajudar a definir a frase
     de busca (texto_busca) em relação à situação cadastral. Todas
