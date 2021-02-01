@@ -7,6 +7,7 @@ import pandas as pd
 from progress.spinner import LineSpinner
 from config import *
 from data import cod_qualificacao
+from helpers.cfwf import read_cfwf
 
 
 class DataClean:
@@ -253,6 +254,7 @@ def socios_clean(file):
         df.to_csv(nome , index = False, index_label = 'cnpj')
         n += 1
         spinner.next()
-                    
+        
+    return True
     
             
