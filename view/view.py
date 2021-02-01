@@ -1,55 +1,24 @@
 import pymongo
 from models.models import BancoDeDadosMongoDB
 
-        
-def situacao_cadastral(self,texto,sit):
-    """Essa função seria uma função pra ajudar a definir a frase
-    de busca (texto_busca) em relação à situação cadastral. Todas
-    as buscas que tem a opção de escolher a função cadastral tem
-    três opções. Ativa, todas e outras(inativas,inaptas,baixadas,
-    ...). Ela recebe uma das 3 opções e retorna um dicionário,
-    ao qual deverão ser adicionados os outros campos para pesquisa.
-    """
+
+class BuscadorPorCnpj(BancoDeDadosMongoDB):
     
-    if sit.lower() == '':
-        return texto
-    if sit.lower() == 'todas':
-        return texto
-    if sit.lower() == 'ativa':
-        texto['Situação_cadastral'] = sit.lower()
-        return texto
-    if sit.lower() == 'outros':
-        outros = {}
-        lista_parametros = []
-        outros['Situação_cadastral']= 'baixada'
-        lista_parametros.append(outros)
-        outros = {}
-        outros['Situação_cadastral']= 'suspensa'
-        lista_parametros.append(outros)
-        outros = {}
-        outros['Situação_cadastral']= 'inapta'
-        lista_parametros.append(outros)
-        outros = {}
-        outros['Situação_cadastral'] = 'nula'
-
-        texto['$or'] = lista_parametros
-        return texto
-
-class Cnpj():
     def __init__(self,cnpj):
+        """A função construtora contém a conexão com o banco de dados e o cnpj
+        a ser pesquisado
+        """
+        super().__init__()
         self.cnpj = cnpj
     
-    def busca_cnpj():
+    def buscar_empresa_por(cnpj):
         """Essa função estabelece uma conexão com o banco de dados, recebe
         uma string contendo o CNPJ a ser pesquisado e retorna os resultados.
         """
-        empresas = conexão_BD()
-        
-        cnpj = request.form['cnpj']
         texto ={}
         texto['CNPJ'] = str(cnpj)
         
-        result = empresas.find(texto,{'_id':0})
+        result = self.empresas.find(texto,{'_id':0})
         
         results=[]
         for i in result:
@@ -146,3 +115,38 @@ class Socios():
         self.cnpj = cnpj
         self.socio = socio
         
+
+
+
+def situacao_cadastral(self,texto,sit):
+    """Essa função seria uma função pra ajudar a definir a frase
+    de busca (texto_busca) em relação à situação cadastral. Todas
+    as buscas que tem a opção de escolher a função cadastral tem
+    três opções. Ativa, todas e outras(inativas,inaptas,baixadas,
+    ...). Ela recebe uma das 3 opções e retorna um dicionário,
+    ao qual deverão ser adicionados os outros campos para pesquisa.
+    """
+    
+    if sit.lower() == '':
+        return texto
+    if sit.lower() == 'todas':
+        return texto
+    if sit.lower() == 'ativa':
+        texto['Situação_cadastral'] = sit.lower()
+        return texto
+    if sit.lower() == 'outros':
+        outros = {}
+        lista_parametros = []
+        outros['Situação_cadastral']= 'baixada'
+        lista_parametros.append(outros)
+        outros = {}
+        outros['Situação_cadastral']= 'suspensa'
+        lista_parametros.append(outros)
+        outros = {}
+        outros['Situação_cadastral']= 'inapta'
+        lista_parametros.append(outros)
+        outros = {}
+        outros['Situação_cadastral'] = 'nula'
+
+        texto['$or'] = lista_parametros
+        return texto
