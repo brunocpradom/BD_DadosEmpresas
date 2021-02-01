@@ -64,7 +64,7 @@ as peças da máquina
 #!----16- Calcular a quantidade de empresas ativas por município ------------#
 #!----17- Inserir dados referentes a empresas ativas no banco de dados-------#
 #!----18- Remover todos arquivos baixados e gerados(zips,csv)----------------#
-#!----
+#!---------------------------------------------------------------------------#
 
 
 def mudando_diretorio_cnpj_clean(dir):

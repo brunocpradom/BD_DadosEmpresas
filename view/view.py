@@ -1,7 +1,10 @@
 import pymongo
 from models.models import BancoDeDadosMongoDB
 
-
+class BuscadorDataAtualizacao(BancodeDadosMongoDB):
+    def __init__():
+        pass
+    
 class BuscadorPorCnpj(BancoDeDadosMongoDB):
     
     def __init__(self,cnpj):

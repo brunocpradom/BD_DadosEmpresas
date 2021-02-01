@@ -7,6 +7,7 @@ import pandas as pd
 from progress.spinner import LineSpinner
 from config import *
 from data import cod_qualificacao
+
 from helpers.cfwf import read_cfwf
 
 
@@ -15,7 +16,7 @@ class DataClean:
         self.dir = csvDirPath
         self.dataPath = dataPath    #-- output path
         #--- variável definida no script antigo
-        file_path = str(file_dir) + 'socios.csv'
+        self.file_path = str(file_dir) + 'socios.csv'
         self.zipPath = zipPath   #--input_path
     
     def cnpj_full(input_list, tipo_output, output_path):
@@ -217,7 +218,7 @@ class DataClean:
                 df.to_csv(nome + str(n) + '.csv' , index = False, 
                         index_label = 'CNPJ')
                 n += 1
-                
+            #Remove o arquivo matriz. 
             os.remove(str(file))
             
             return True
@@ -234,7 +235,7 @@ def socios_clean(file):
     n = 1
     print('Tratando tabelas de sócios')
     
-    for chunk in pd.read_csv(file_path , header = 0 ,index_col = None, 
+    for chunk in pd.read_csv(self.file_path , header = 0 ,index_col = None, 
                             sep = ',', encoding = 'utf-8' , dtype =str , 
                             chunksize =500000):
         df = chunk
@@ -254,7 +255,8 @@ def socios_clean(file):
         df.to_csv(nome , index = False, index_label = 'cnpj')
         n += 1
         spinner.next()
-        
+    #Removendo o arquivo matriz socios.csv 
+    os.remove(self.file_path)
     return True
     
             
