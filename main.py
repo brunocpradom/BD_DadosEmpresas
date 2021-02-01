@@ -1,3 +1,4 @@
+from helpers.update import Update, SiteRF
 #main.py
 """Esse arquivo vai conter a camada superior da aplicação, onde serão ligadas
 as peças da máquina
@@ -65,6 +66,31 @@ as peças da máquina
 #!----17- Inserir dados referentes a empresas ativas no banco de dados-------#
 #!----18- Remover todos arquivos baixados e gerados(zips,csv)----------------#
 #!---------------------------------------------------------------------------#
+
+#--Essa função vai retornar True se a data de atualização do bd for menor que da
+#--Receita federal
+
+#!-----------------------------------------------------------------------------
+#!---Antes de conferir se tem uma atualização disponível, é necessário conferir
+#!---se existe um banco de dados. Caso não exista, ele deve pular direto para
+#!---a criação do banco de dados
+#!-----------------------------------------------------------------------------
+
+
+#!-----------------------------------------------------------------------------
+#!----Outro ponto de importante para se considerar é em relação ao modo que 
+#!----o download vai acontecer.. Será feito de 4 em 4, para economizar tempo
+#!----ou será feito de um em um, e tratando-os, inserindo-os no banco de dados
+#!----para depois apagá-lo, economizando assim espaço.
+#!-----------------------------------------------------------------------------
+
+if Update.isUpdateAvailable():
+    #!-posso colocar essa função abaixo dentro do metodo isupdateAvailable em
+    #!- update.py
+    SiteRF.downloadFilesInParalell()
+else:
+    print('Banco de dados está atualizado')
+
 
 
 def mudando_diretorio_cnpj_clean(dir):
