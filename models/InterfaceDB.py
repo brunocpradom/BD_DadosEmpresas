@@ -3,7 +3,7 @@ from pymongo import MongoClient
 
 class MongoDB():
     def __init__(self):
-        """Essa função estabele a conexão com o banco de dados. 
+        """Estabele a conexão com o banco de dados. 
         """        
         self.db = MongoClient().dados_empresas
         

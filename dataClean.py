@@ -5,32 +5,25 @@ import csv
 import datetime
 import pandas as pd
 from progress.spinner import LineSpinner
-from config import *
+import config
 from data import cod_qualificacao
 
 from helpers.cfwf import read_cfwf
 
 
 class DataClean:
-    def __init__(self):
-        self.dir = csvDirPath
-        self.dataPath = dataPath    #-- output path
-        #--- variável definida no script antigo
-        self.file_path = str(file_dir) + 'socios.csv'
-        self.zipPath = zipPath   #--input_path
+    dir = config.csvDirPath                             # ./dados/UFs
+    dataPath = config.datapath                          # ./dados
+    file_path = str(config.socios_dir) + '/socios.csv'
+    zip_path = config.zipPath                           # ./zip
     
-    def cnpj_full(input_list, tipo_output, output_path):
+    
+    def cnpj_full(self):
         """Essa função recebe uma lista com os arquivos zips, baixados do site
         da receita federal, o tipo de output (CSV) e o diretório onde deverão
         ser salvos os 3 arquivos resultantes do processo('empresas.csv', 
         'socios.csv' e 'cnaesecundario.csv')
-        """
-        #--------------------------------------------------------------------#
-        #-- Posso melhorar essa função, mudando por exemplo o input_list.    #
-        #-- Agora o processo vai acontecer de forma diferente. Os arquivos   #
-        #-- serão baixados e processados um a um, para economizar espaço     #
-        #-- quando o script for implementado em um servidor                  #
-        #--------------------------------------------------------------------#
+        """       
         
         total_empresas = 0
         controle_empresas = 0
@@ -39,8 +32,8 @@ class DataClean:
         total_cnaes = 0
         controle_cnaes = 0
     
-        if not os.path.exists(output_path):
-            os.makedirs(output_path)
+        if not os.path.exists(self.dataPath):
+            os.makedirs(self.dataPath)
     
         
         header_colnomes = list(list(zip(*HEADER_COLUNAS))[0])
@@ -54,7 +47,7 @@ class DataClean:
         trailler_colspecs = list(list(zip(*TRAILLER_COLUNAS))[1])
     
         # Itera sobre sequencia de arquivos (p/ suportar arquivo dividido pela RF)
-        for i_arq, arquivo in enumerate(input_list):
+        for i_arq, arquivo in enumerate(self.input_list):
             print('Processando arquivo: {}'.format(arquivo))
             
             dados = read_cfwf(arquivo, 
@@ -153,16 +146,16 @@ class DataClean:
                         # Para evitar que tente armazenar dados de trailler
                         continue
     
-                    if tipo_output == 'csv':
-                        if (i_arq + i_bloco) > 0:
-                            replace_append = 'a'
-                            header=False
-                        else:
-                            replace_append = 'w'
-                            header=True
+                    
+                    if (i_arq + i_bloco) > 0:
+                        replace_append = 'a'
+                        header=False
+                    else:
+                        replace_append = 'w'
+                        header=True
     
                         nome_arquivo_csv = REGISTROS_TIPOS[tipo_registro] + '.csv'
-                        df.to_csv(os.path.join(output_path,nome_arquivo_csv), 
+                        df.to_csv(os.path.join(self.dataPath,nome_arquivo_csv), 
                                 header=header,
                                 mode=replace_append,
                                 index=False,

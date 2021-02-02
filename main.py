@@ -1,4 +1,5 @@
 from helpers.update import Update, SiteRF
+from dataclean import DataClean
 #main.py
 """Esse arquivo vai conter a camada superior da aplicação, onde serão ligadas
 as peças da máquina
@@ -90,6 +91,12 @@ if Update.isUpdateAvailable():
     SiteRF.downloadFilesInParalell()
 else:
     print('Banco de dados está atualizado')
+
+#Essa função trata todos os arquivos zip
+DataClean.cnpj_full()
+
+
+
 
 
 
