@@ -1,4 +1,5 @@
 import os
+import glob
 
 rootPath = os.getcwd()
 dataPath = rootPath + '/dados'

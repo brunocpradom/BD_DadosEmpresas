@@ -16,7 +16,7 @@ class DataClean:
     dataPath = config.datapath                          # ./dados
     file_path = str(config.socios_dir) + '/socios.csv'
     zip_path = config.zipPath                           # ./zip
-    
+    input_list = config.input_list
     
     def cnpj_full(self):
         """Essa função recebe uma lista com os arquivos zips, baixados do site
@@ -24,7 +24,7 @@ class DataClean:
         ser salvos os 3 arquivos resultantes do processo('empresas.csv', 
         'socios.csv' e 'cnaesecundario.csv')
         """       
-        
+        #!- Acredito que vou manter apenas total_empresas
         total_empresas = 0
         controle_empresas = 0
         total_socios = 0
@@ -35,7 +35,7 @@ class DataClean:
         if not os.path.exists(self.dataPath):
             os.makedirs(self.dataPath)
     
-        
+        #!----Coloquei essas variáveis em um arquivo separado
         header_colnomes = list(list(zip(*HEADER_COLUNAS))[0])
         empresas_colnomes = list(list(zip(*EMPRESAS_COLUNAS))[0])
         socios_colnomes = list(list(zip(*SOCIOS_COLUNAS))[0])
@@ -47,6 +47,7 @@ class DataClean:
         trailler_colspecs = list(list(zip(*TRAILLER_COLUNAS))[1])
     
         # Itera sobre sequencia de arquivos (p/ suportar arquivo dividido pela RF)
+        
         for i_arq, arquivo in enumerate(self.input_list):
             print('Processando arquivo: {}'.format(arquivo))
             
@@ -80,7 +81,7 @@ class DataClean:
             
                     if tipo_registro == '1': # empresas
                         total_empresas += len(df)
-            
+                        #!-- Coloquei dentro de uma função changeValuesEmpresas
                         # Troca datas zeradas por vazio
                         df[EMP_DATA_OPC_SIMPLES] = (df[EMP_DATA_OPC_SIMPLES]
                                 .where(df[EMP_DATA_OPC_SIMPLES] != '00000000',''))
