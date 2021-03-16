@@ -71,7 +71,7 @@ REGISTROS_TIPOS = {
 }
 
 EMPRESAS_COLUNAS = [
-    (EMP_CNPJ,(3, 17)), 
+    (EMP_CNPJ,(3, 17)),
     (EMP_MATRIZ_FILIAL,(17,18)),
     (EMP_RAZAO_SOCIAL,(18,168)),
     (EMP_NOME_FANTASIA,(168,223)),
@@ -114,7 +114,7 @@ EMPRESAS_COLUNAS = [
 EMPRESAS_DTYPE = {EMP_CAPITAL_SOCIAL:float}
 
 SOCIOS_COLUNAS = [
-    (SOC_CNPJ,(3, 17)), 
+    (SOC_CNPJ,(3, 17)),
     (SOC_TIPO_SOCIO,(17,18)),
     (SOC_NOME_SOCIO,(18,168)),
     (SOC_CNPJ_CPF_SOCIO,(168,182)),
@@ -165,8 +165,9 @@ header_colnomes = list(list(zip(*HEADER_COLUNAS))[0])
 empresas_colnomes = list(list(zip(*EMPRESAS_COLUNAS))[0])
 socios_colnomes = list(list(zip(*SOCIOS_COLUNAS))[0])
 trailler_colnomes = list(list(zip(*TRAILLER_COLUNAS))[0])
-    
+
 header_colspecs = list(list(zip(*HEADER_COLUNAS))[1])
 empresas_colspecs = list(list(zip(*EMPRESAS_COLUNAS))[1])
 socios_colspecs = list(list(zip(*SOCIOS_COLUNAS))[1])
 trailler_colspecs = list(list(zip(*TRAILLER_COLUNAS))[1])
+

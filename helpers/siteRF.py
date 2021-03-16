@@ -1,7 +1,10 @@
 from dateutil.parser import parse  
 import re
-from url.request import urlopen
+from urllib.request import urlopen
 import os
+import wget
+import requests
+from data.path import zip_path
 #importar conexão com banco de dados
 
 
@@ -32,6 +35,10 @@ class SiteRF():
                     pbar.update(1000)
         pbar.close()
         return size
+    
+    def download_file_wget(self,url):
+        dir = zip_path + '/file.zip'
+        wget.download(url , out = dir)
     
     def downloadFilesInParalell(self):
         print('Iniciando download de arquivos.')

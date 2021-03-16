@@ -1,5 +1,9 @@
-from helpers.update import Update, SiteRF
-from dataclean import DataClean
+import os
+
+from helpers.empresas_ativas import criando_parametros
+from helpers.siteRF import SiteRF
+from entidades import Data_Processor
+from data import path
 #main.py
 """Esse arquivo vai conter a camada superior da aplicação, onde serão ligadas
 as peças da máquina
@@ -85,32 +89,34 @@ as peças da máquina
 #!----para depois apagá-lo, economizando assim espaço.
 #!-----------------------------------------------------------------------------
 
-if Update.isUpdateAvailable():
-    #!-posso colocar essa função abaixo dentro do metodo isupdateAvailable em
-    #!- update.py
-    SiteRF.downloadFilesInParalell()
-else:
-    print('Banco de dados está atualizado')
+# if Update.isUpdateAvailable():
+#     #!-posso colocar essa função abaixo dentro do metodo isupdateAvailable em
+#     #!- update.py
+#     SiteRF.downloadFilesInParalell()
+# else:
+#     print('Banco de dados está atualizado')
+if not os.path.exists(path.data_path):
+    os.mkdir(path.data_path)
+if not os.path.exists(path.zip_path):
+    os.mkdir(path.zip_path)
+if not os.path.exists(path.socios_dir):
+    os.mkdir(path.socios_dir)
 
-#Essa função trata todos os arquivos zip
-DataClean.cnpj_full()
+
+init_process = SiteRF()
+urls = init_process.search_download_urls()
+x = 1
+for url in urls:
+    print(url)
+    print(str(x) + '/20')
+    init_process.download_file_wget(url)
+    to_database =Data_Processor()
+    print('Starting cleaning data and put in DB')
+    to_database.process_data_in_chunks()
+    os.remove(path.zip_path + '/file.zip')
+    print('ok')
+    x +=1
+criando_parametros()
 
 
 
-
-
-
-def mudando_diretorio_cnpj_clean(dir):
-    """ Essa função percorre os diretórios contendo arquivos CSV
-    e chama treating_csv()."""
-    
-    estados = ['SP']  
-    'Iniciando tratamento de tabelas.'    
-    for uf in estados:
-        print('-----------------------------------------------------')
-        print('------------------------Estado: {}-------------------'.format(uf))
-        print('-----------------------------------------------------')
-        diretorio_base = dir + '/' + uf
-        os.chdir(diretorio_base)
-        treating_csv()
-        os.chdir('../../../')
