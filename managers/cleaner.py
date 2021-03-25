@@ -1,13 +1,12 @@
-import os
 import csv
+import os
 
-from progress.spinner import LineSpinner
 import pandas as pd
+from progress.spinner import LineSpinner
 
-from data.cleaner.helpers import read_cfwf
-from data.cleaner.constants.cod_qualificacao import qual_socio, tipo_socio 
-from data.cleaner.constants import var , path
-from config.database import DB
+from constants import path, var
+from helpers import read_cfwf
+
 
 class Empresas:
     csvDirectory = path.csv_path

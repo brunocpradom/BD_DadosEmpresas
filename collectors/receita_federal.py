@@ -1,10 +1,12 @@
-from dateutil.parser import parse  
-import re
-from urllib.request import urlopen
 import os
-import wget
+import re
+
 import requests
-from data.path import zip_path
+import wget
+from dateutil.parser import parse
+
+from constants.path import zip_path
+
 #importar conexão com banco de dados
 
 

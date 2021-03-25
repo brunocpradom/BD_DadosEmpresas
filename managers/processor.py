@@ -1,7 +1,10 @@
 import re
+
 import requests
-from config import config
-from data.municipios import municipios
+
+from constants import municipios
+from models import config
+
 
 def criando_parametros():
     """Essa função acessa o banco de dados MongoDB, que contém as informações referente às empresas,

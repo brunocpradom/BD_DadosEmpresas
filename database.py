@@ -1,38 +1,45 @@
 import csv
 
-from pymongo import MongoClient
 import pymongo
-import pandas as pd
+from dateutil.parser import parse
+from pymongo import MongoClient
 from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import database_exists, create_database
-from dateutil.parser import parse
 
-from models.models import Empresas, Config, Base
-from config import config
+Base = declarative_base()
 
-class SQL():   
 
+#Database config
+def connexion_mongo():
+    client = MongoClient('172.17.0.2')
+    db = client.dados_empresas
+    return db
+
+def connexion_sql():
+    pass
+
+class SQL():
     db_connexion = "mysql://bcpm:ddd@172.17.0.2/dados_empresas"
 
     # def search(self,search_params_dict):
     #     empresa =self.session.query(Empresas).filter_by(CNPJ = cnpj)
-        # return list(empresa)
+    # return list(empresa)
 
-    def insert_many(self,df , table):
+    def insert_many(self, df, table):
         engine = create_engine(self.db_connexion)
-        Session = sessionmaker(bind = engine)
+        Session = sessionmaker(bind=engine)
         session = Session()
 
         if not database_exists(self.db_connexion):
             create_database(engine.url)
-            Base.metadata.create_all(engine, checkfirst =True)
+            Base.metadata.create_all(engine, checkfirst=True)
 
-        df.to_sql(table, con = engine , if_exists = 'append',index = False )
+        df.to_sql(table, con=engine, if_exists='append', index=False)
         pass
-    
-    def create_index(self):
 
+    def create_index(self):
         pass
 
     # def checkUpdateDate(self):
@@ -45,8 +52,8 @@ class SQL():
 
 
 class MongoDB():
-    db = config.connexion_mongo()
-    
+    db = connexion_mongo()
+
     # def search(self, search_params_dict):
     #     """Essa função recebe um dicionário com os parâmetros a serem buscados.
     #     E retorna uma lista com os resultados da pesquisa
@@ -59,9 +66,9 @@ class MongoDB():
     def insert_many(self, file, table):
         try:
             list_of_dict = []
-            file = csv.DictReader(open(str(file),encoding = 'utf-8'))
+            file = csv.DictReader(open(str(file), encoding='utf-8'))
             for row in file:
-                #conn.execute(ins,row)
+                # conn.execute(ins,row)
                 list_of_dict.append(row)
             documents = list_of_dict
 
@@ -82,32 +89,32 @@ class MongoDB():
             print(e)
             print('Error inserting')
             return False
-    
-    def create_index(self):
-        #Empresas
-        self.db.empresas.create_index([('cnpj',pymongo.ASCENDING)])
-        self.db.empresas.create_index([('CNAE_fiscal',pymongo.ASCENDING)])
-        self.db.empresas.create_index([('Município',pymongo.ASCENDING),
-                                    ('Situação_cadastral',pymongo.ASCENDING),
-                                    ('CNAE_fiscal',pymongo.ASCENDING),])
-        self.db.empresas.create_index([('UF', pymongo.ASCENDING),
-                                    ('CNAE_fiscal',pymongo.ASCENDING),
-                                    ('Situação_cadastral',pymongo.ASCENDING)])
-                                    
-        #Cnae_secundario
-        self.db.cnae_legenda.create_index([('CNAE_fiscal',pymongo.ASCENDING)]) 
 
-        #Socios
-        self.db.socios.create_index([('nome_socio',pymongo.ASCENDING)])
-        self.db.socios.create_index([('cnpj',pymongo.ASCENDING)])
+    def create_index(self):
+        # Empresas
+        self.db.empresas.create_index([('cnpj', pymongo.ASCENDING)])
+        self.db.empresas.create_index([('CNAE_fiscal', pymongo.ASCENDING)])
+        self.db.empresas.create_index([('Município', pymongo.ASCENDING),
+                                       ('Situação_cadastral', pymongo.ASCENDING),
+                                       ('CNAE_fiscal', pymongo.ASCENDING), ])
+        self.db.empresas.create_index([('UF', pymongo.ASCENDING),
+                                       ('CNAE_fiscal', pymongo.ASCENDING),
+                                       ('Situação_cadastral', pymongo.ASCENDING)])
+
+        # Cnae_secundario
+        self.db.cnae_legenda.create_index([('CNAE_fiscal', pymongo.ASCENDING)])
+
+        # Socios
+        self.db.socios.create_index([('nome_socio', pymongo.ASCENDING)])
+        self.db.socios.create_index([('cnpj', pymongo.ASCENDING)])
 
     @classmethod
     def checkUpdateDate(self):
         update = self.db.atualizacao
         result = update.find(
-                {'ultima_atualizacao':{'$regex': '\d\d/\d\d/\d\d\d\d'}},
-                {'_id':0}
-                )
+            {'ultima_atualizacao': {'$regex': '\d\d/\d\d/\d\d\d\d'}},
+            {'_id': 0}
+        )
         print(list(result))
         if list(result):
             dateDB = parse(list(result)[0]['ultima_atualizacao'])
@@ -116,6 +123,21 @@ class MongoDB():
         return dateDB
 
 
+class DB(MongoDB):
+    """Essa classe vai ser herdada por toda classe que faça conexão com o banco
+    de dados.Caso queira trabalhar com o mongoDB, ela deve herdá-lo, caso queira
+    trabalhar com qualquer banco suportado pelo SQLAlchemy, BancoDeDados deve
+    herdar SQL
+    """
 
+    # def search(self, search_params_dict):
+    #     super().search(search_params_dict)
 
+    def insert_many(self, df, table):
+        super().insert_many(df, table)
 
+    def create_index(self):
+        super().create_index()
+
+    # def checkUpdateDate(self):
+    #     super().checkUpdateDate()
