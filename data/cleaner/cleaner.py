@@ -1,20 +1,17 @@
 import os
+import csv
 
 from progress.spinner import LineSpinner
 import pandas as pd
 
-from helpers.cfwf import read_cfwf
-from data.cod_qualificacao import qual_socio, tipo_socio 
-from data import var , path
-from config import DB, db_connexion
+from data.cleaner.helpers import read_cfwf
+from data.cleaner.constants.cod_qualificacao import qual_socio, tipo_socio 
+from data.cleaner.constants import var , path
+from config.database import DB
 
 class Empresas:
-    csvDirectory = path.csvDirPath
-    
-    # def __init__(self,file):
-    #     self.file = file
+    csvDirectory = path.csv_path
         
-    
     def values_replace(self,df):
         df[var.EMP_DATA_OPC_SIMPLES] = (df[var.EMP_DATA_OPC_SIMPLES]
                 .where(df[var.EMP_DATA_OPC_SIMPLES] != '00000000',''))
@@ -52,42 +49,12 @@ class Empresas:
                     "situacao_especial","data_situacao_especial"
                     ]
         return df
-    
-    # def saveCsv(self,df,n):
-    #     nome = str(self.file).replace('.csv','')
-    #     #--- Salvando os pedaços de arquivo, acrescido de n . 'GUAXUPE1.csv'
-    #     df.to_csv(nome + str(n) + '.csv' , index = False, 
-    #             index_label = 'CNPJ')
-        
-    #     return True
-    
-    # def startDataClean(self):
-    #     n = 1
-    #     try:
-    #         for chunk in pd.read_csv(self.file, header = None,index_col = None, 
-    #                                 sep = ',', encoding = 'utf-8' , dtype =str ,
-    #                                 usecols = range(38),chunksize =500000):
-    #             df = chunk
-    #             df = self.valuesReplace(df)
-    #             df = self.dropElements(df)
-    #             df = self.nameColumns(df)
-    #             self.saveCsv(df,n)
-    #             n +=1
-    #         os.remove(str(self.file))
-    #         return True
-    
-    #     except:
-    #         return False
-
 
 class Socios:
     file_path = str(path.socios_dir) + '/socios.csv'
-    
-    # def __init__(self, file):
-    #     self.file = file
-    
-    def values_replace(self,df):
         
+    def values_replace(self,df):
+
         df.drop_duplicates(inplace=True)
         df.fillna('-',inplace = True)
         df = df.astype(str)
@@ -95,33 +62,13 @@ class Socios:
                                     '3':'Extrangeiro'}, inplace= True)
         df['cod_qualificacao'].replace(qual_socio, inplace=True)
         return df
-        
-    # def saveCsv(self,df,n):
-        
-    #     nome = str(self.file_path).replace('.csv','')  + str(n) + '.csv'
-    #     df.to_csv(nome , index = False, index_label = 'cnpj')
-    #     return True
     
-    # def startDataClean(self):
-    #     n = 1
-    #     try:
-    #         for chunk in pd.read_csv(self.file, header = None,index_col = None, 
-    #                                 sep = ',', encoding = 'utf-8' , dtype =str ,
-    #                                 usecols = range(38),chunksize =500000):
-    #             df = chunk
-    #             df = self.valuesReplace(df)
-    #             df = self.saveCsv(df,n)
-    #             n +=1
-    #         os.remove(str(self.file))
-    #         return True
-        
-    #     except:
-    #         return False
-
+    
 class Data_Processor:
     input_list = path.input_list
     data_path = path.data_path
-        
+    
+    @classmethod
     def process_data_in_chunks(self):
         print('Starting')
         total_empresas = 0
@@ -178,7 +125,7 @@ class Data_Processor:
                                     value_name=var.CNA_CNAE)
 
                         df = df[df[var.CNA_CNAE] != '0000000']
-                        table = 'cnae_secundarios'
+                        table = 'cnaes_secundarios'
                         spinner.next()
 
                     elif tipo_registro == '0': # header
@@ -204,7 +151,17 @@ class Data_Processor:
                         continue
                         
                     
-                    to_db = DB()
-                    spinner.next()
-                    # to_db.insertMany(df,table, db_connexion)
-                    to_db.insertMany(df,table)
+                    if (i_arq + i_bloco) > 0:
+                        replace_append = 'a'
+                        header=False
+                    else:
+                        replace_append = 'w'
+                        header=True
+
+                    nome_arquivo_csv = var.REGISTROS_TIPOS[tipo_registro] + '.csv'
+                    df.to_csv(os.path.join(path.data_path,nome_arquivo_csv), 
+                              header=header,
+                              mode=replace_append,
+                              index=False,
+                              quoting=csv.QUOTE_NONNUMERIC)
+                    

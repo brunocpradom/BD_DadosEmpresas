@@ -1,6 +1,6 @@
 import re
 import requests
-from pymongo import MongoClient
+from config import config
 from data.municipios import municipios
 
 def criando_parametros():
@@ -12,8 +12,7 @@ def criando_parametros():
     r = requests.get('https://receita.economia.gov.br/orientacao/tributaria/cadastros/cadastro-nacional-de-pessoas-juridicas-cnpj/dados-publicos-cnpj')
     urls = re.findall('Data de geração do arquivo: (\d\d/\d\d/\d\d\d\d)',r.text)
     
-    client = MongoClient('172.17.0.2')
-    db = client.dados_empresas 
+    db = config.connexion_mongo() 
     if 'empresas_ativas' in db.list_collection_names():
         #Aqui estou copiando os dados da última atualização para a coleção onde ficarão os dados antigos,
         #que serão usados para criar grafico de empresas ativas por trimestre
@@ -31,7 +30,7 @@ def criando_parametros():
     #db.coll.find({"mykey":{'$exists': 1}}) #Isso é pra pegar tudo que tem essa key
     
     documents = db.empresas
-    
+    print('')
     lista_por_estado =[]
     for f in municipios:
         list_cidades = []
@@ -64,9 +63,10 @@ def criando_parametros():
 
         valores['Município'] = nome
         valores['data'] = urls[0]
-        
+        print('Calculando empresas ativas por setor')
+        cont = 1
         for i in cnae_setor:
-                    
+            print(str(cont ) + '/21')
             dict1 = {}
             dict2 = {}
             dict3 = {}
@@ -89,7 +89,8 @@ def criando_parametros():
                 contagem += 1
             
             valores[str(i)]= contagem
-
+            cont +=1
+        print(valores)
         lista_por_estado.append(valores)
                     
         
@@ -98,7 +99,7 @@ def criando_parametros():
     grafico = db.empresas_ativas
     grafico.insert_many(lista_por_estado)
     lista_por_estado =[]
-
+    return True
 if __name__ == '__main__':
     criando_parametros()
 

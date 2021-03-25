@@ -1,26 +1,38 @@
+import csv
+
 from pymongo import MongoClient
+import pymongo
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import database_exists, create_database
+from dateutil.parser import parse
 
 from models.models import Empresas, Config, Base
+from config import config
 
 class SQL():   
+
+    db_connexion = "mysql://bcpm:ddd@172.17.0.2/dados_empresas"
 
     # def search(self,search_params_dict):
     #     empresa =self.session.query(Empresas).filter_by(CNPJ = cnpj)
         # return list(empresa)
 
-    def insertMany(self,df , table,db_connexion):
-        engine = create_engine(db_connexion)
+    def insert_many(self,df , table):
+        engine = create_engine(self.db_connexion)
         Session = sessionmaker(bind = engine)
         session = Session()
-        if not database_exists(db_connexion):
+
+        if not database_exists(self.db_connexion):
             create_database(engine.url)
             Base.metadata.create_all(engine, checkfirst =True)
 
         df.to_sql(table, con = engine , if_exists = 'append',index = False )
+        pass
+    
+    def create_index(self):
+
         pass
 
     # def checkUpdateDate(self):
@@ -31,13 +43,10 @@ class SQL():
 
     #     return dateDB
 
-class MongoDB():
-    # def __init__(self):
-    #     """Estabele a conexão com o banco de dados.
-    #     """
-    #     uri = "mongodb://bcpm:ddd@172.17.0.2:port"
-    #     self.db = MongoClient('172.17.0.2')
 
+class MongoDB():
+    db = config.connexion_mongo()
+    
     # def search(self, search_params_dict):
     #     """Essa função recebe um dicionário com os parâmetros a serem buscados.
     #     E retorna uma lista com os resultados da pesquisa
@@ -47,33 +56,64 @@ class MongoDB():
 
     #     return list(result)
 
-    def insertMany(self, df , table):
-        
+    def insert_many(self, file, table):
         try:
-            client = MongoClient('172.17.0.2')
-            db = client.dados_empresas
-            documents = df.to_dict(orient = 'records')
+            list_of_dict = []
+            file = csv.DictReader(open(str(file),encoding = 'utf-8'))
+            for row in file:
+                #conn.execute(ins,row)
+                list_of_dict.append(row)
+            documents = list_of_dict
+
             if table == 'empresas':
-                db.empresas.insert_many(documents)
+                empresas = self.db.empresas
+                result = empresas.insert_many(documents)
+                result.inserted_ids
             if table == 'socios':
-                db.socios.insert_many(documents)
+                socios = self.db.empresas
+                result = socios.insert_many(documents)
+                result.inserted_ids
             if table == 'cnaes_secundarios':
-                db.cnaesecundario.insert_many(documents)
-            return True
+                cnaes_secundarios = self.db.empresas
+                result = cnaes_secundarios.insert_many(documents)
+                result.inserted_ids
 
         except Exception as e:
             print(e)
             print('Error inserting')
             return False
+    
+    def create_index(self):
+        #Empresas
+        self.db.empresas.create_index([('cnpj',pymongo.ASCENDING)])
+        self.db.empresas.create_index([('CNAE_fiscal',pymongo.ASCENDING)])
+        self.db.empresas.create_index([('Município',pymongo.ASCENDING),
+                                    ('Situação_cadastral',pymongo.ASCENDING),
+                                    ('CNAE_fiscal',pymongo.ASCENDING),])
+        self.db.empresas.create_index([('UF', pymongo.ASCENDING),
+                                    ('CNAE_fiscal',pymongo.ASCENDING),
+                                    ('Situação_cadastral',pymongo.ASCENDING)])
+                                    
+        #Cnae_secundario
+        self.db.cnae_legenda.create_index([('CNAE_fiscal',pymongo.ASCENDING)]) 
 
+        #Socios
+        self.db.socios.create_index([('nome_socio',pymongo.ASCENDING)])
+        self.db.socios.create_index([('cnpj',pymongo.ASCENDING)])
 
-    # def checkUpdateDate(self):
-    #     result = self.db.atualizacao.find(
-    #             {'ultima_atualizacao':{'$regex': '\d\d/\d\d/\d\d\d\d'}},
-    #             {'_id':0}
-    #             )
-    #     dateDB = parse(list(result)[0]['ultima_atualizacao'])
-    #     return dateDB
+    @classmethod
+    def checkUpdateDate(self):
+        update = self.db.atualizacao
+        result = update.find(
+                {'ultima_atualizacao':{'$regex': '\d\d/\d\d/\d\d\d\d'}},
+                {'_id':0}
+                )
+        print(list(result))
+        if list(result):
+            dateDB = parse(list(result)[0]['ultima_atualizacao'])
+        else:
+            dateDB = parse('01/01/2020')
+        return dateDB
 
 
 

@@ -49,15 +49,13 @@ class SiteRF():
             Parallel( verbose = 70)(delayed(self.download_file)(url)for url in urls)
     
         return True
-    
+    @classmethod
     def check_RF_update_date(self):
         """Essa função procura pela data de atualização no site da receita federal
         """
-        html = urlopen(
-            """https://receita.economia.gov.br/orientacao/tributaria/cadastros/cadastro-nacional-de-pessoas-juridicas-cnpj/dados-publicos-cnpj"""
-            )
+        r = requests.get('https://receita.economia.gov.br/orientacao/tributaria/cadastros/cadastro-nacional-de-pessoas-juridicas-cnpj/dados-publicos-cnpj')
         urls = re.findall(
-            'Data de geração do arquivo: (\d\d/\d\d/\d\d\d\d)',html.read()
+            'Data de geração do arquivo: (\d\d/\d\d/\d\d\d\d)',r.text
             )
-        dateRF = parse(url[0])
+        dateRF = parse(urls[0])
         return dateRF

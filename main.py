@@ -1,9 +1,11 @@
 import os
 
+from helpers.separar_csv_por_cidade import separar_csv_por_cidade
 from helpers.empresas_ativas import criando_parametros
 from helpers.siteRF import SiteRF
 from entidades import Data_Processor
-from data import path
+from data import path, estados
+from models.InterfaceDB import MongoDB
 #main.py
 """Esse arquivo vai conter a camada superior da aplicação, onde serão ligadas
 as peças da máquina
@@ -81,42 +83,85 @@ as peças da máquina
 #!---a criação do banco de dados
 #!-----------------------------------------------------------------------------
 
+def check_for_update():
+    update_date_BD = MongoDB.checkUpdateDate()
+    update_date_RF = SiteRF.check_RF_update_date()
+    print(update_date_RF)
+    print(update_date_BD)
+    return update_date_RF > update_date_BD
+    
+def create_directories():
 
-#!-----------------------------------------------------------------------------
-#!----Outro ponto de importante para se considerar é em relação ao modo que 
-#!----o download vai acontecer.. Será feito de 4 em 4, para economizar tempo
-#!----ou será feito de um em um, e tratando-os, inserindo-os no banco de dados
-#!----para depois apagá-lo, economizando assim espaço.
-#!-----------------------------------------------------------------------------
+    if not os.path.exists(path.data_path):
+        os.mkdir(path.data_path)
+    if not os.path.exists(path.zip_path):
+        os.mkdir(path.zip_path)
+    return True
 
-# if Update.isUpdateAvailable():
-#     #!-posso colocar essa função abaixo dentro do metodo isupdateAvailable em
-#     #!- update.py
-#     SiteRF.downloadFilesInParalell()
-# else:
-#     print('Banco de dados está atualizado')
-if not os.path.exists(path.data_path):
-    os.mkdir(path.data_path)
-if not os.path.exists(path.zip_path):
-    os.mkdir(path.zip_path)
-if not os.path.exists(path.socios_dir):
-    os.mkdir(path.socios_dir)
+def init_update():
+    urls = SiteRF().search_download_urls()
+    for url in urls:
+        init_process.download_file_wget(url)
+        print('Starting cleaning data ')
+        Data_Processor.process_data_in_chunks()
+        os.remove(path.zip_path + '/file.zip')
+        separar_csv_por_cidade()
+        #Inserir socios
+        #inserir cnaes_secundarios
+        #Deletar CSVs
+    separar_csv_por_cidade()
 
+    #Aqui devo iterar por todos os arquivos da pasta CSVs e jogar pro banco de dados
+    for uf in estados.estados:              
+        dir = str(path.csv_path) + '/' + uf
+        os.chdir(dir)        
+        for f in glob.glob('*.*'):
+            try:
+                #bar.next()
+                InterfaceDB().insert_many(file,'empresas')
+                
+            except:
+                pass
+    # #CRIAR ÍNDICES
 
-init_process = SiteRF()
-urls = init_process.search_download_urls()
-x = 1
-for url in urls:
-    print(url)
-    print(str(x) + '/20')
-    init_process.download_file_wget(url)
-    to_database =Data_Processor()
-    print('Starting cleaning data and put in DB')
-    to_database.process_data_in_chunks()
-    os.remove(path.zip_path + '/file.zip')
-    print('ok')
-    x +=1
-criando_parametros()
+    def cnaesecundario_to_mongoDB():
+        """Essa função insere o arquivo cnae_secundarios.csv no banco de dados mongoDB."""
+        db = config.connexion_mongo()
+        if 'cnaesecundario' in db.list_collection_names():
+            db.cnaesecundario.rename('cnaesecundario2')
+        print('Insert CNAEs secundários ')
+        cnae_dir = str(diretorio_cnaessecundarios) + 'cnaes_secundarios.csv' 
+        InterfaceDB().insert_many(cnae_dir,'cnae_secundario')
+    
+        db.cnaesecundario2.drop()
 
+    def socios_to_mongoDB():
+    """Essa função insere os dados do arquivo socios.csv no banco de dados MongoDB
+    """   
+        db = config.connexion_mongo()     
+        if 'socios' in db.list_collection_names():
+            if 'socios2' in db.list_collection_names():
+                result = db.socios.find({},{'_id':0})
+                lista = []
+                for i in result :
+                    lista.append(i)
+                print('Transferindo dados para outra coleção')
+                db.socios3.insert_many(lista)
+                db.socios.drop()
+                db.socios.rename('socios3')
+            else:
+                db.socios.rename('socios3') 
+        
+        print('Insert sócios ')
+        os.chdir(str(file_dir) + 'socios/')
+        for file in glob.glob('*.*'):
+            InterfaceDB().insert_many(file,'socios')
+        db.socios2.drop()
 
+    criando_parametros()
 
+if __name__ == '__main__':
+    # if check_for_update():
+    #     create_directories()
+    #     init_update()
+    init_update()
