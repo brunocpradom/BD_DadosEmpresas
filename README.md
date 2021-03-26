@@ -20,7 +20,7 @@ PROCESSO DE CRIAÇÃO DE BANCO DE DADOS
 
 ATENÇÃO
 
-    Nesse ponto preciso pensar com cuidado com estruturarei essa  
+   Nesse ponto preciso pensar com cuidado com estruturarei essa  
  parte, pois, caso queira implementar esse processo de criação do 
  banco de dados em um servidor, seria interessante baixar um ar-   
  por vez e tratá-los individualmente                               
@@ -37,7 +37,7 @@ ATENÇÃO
 
 ATENÇÃO
 
-    Nesse momento é importante eu considerar a possibilidade de já 
+   Nesse momento é importante eu considerar a possibilidade de já 
  existir uma banco de dados desatualizado.Como farei a substituição
  faria apenas um update? Ou faria a inserção de todos os dados pra 
  depois apagar os antigos, garantindo que o aplicativo de consulta 
