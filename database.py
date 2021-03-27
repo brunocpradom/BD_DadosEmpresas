@@ -10,15 +10,12 @@ from sqlalchemy_utils import database_exists, create_database
 
 Base = declarative_base()
 
-
-#Database config
-def connexion_mongo():
-    client = MongoClient('172.17.0.2')
-    db = client.dados_empresas
-    return db
-
-def connexion_sql():
-    pass
+#MongoDB
+host = '172.17.0.2'
+port = ''
+username = ''
+password = ''
+#SQL
 
 class SQL():
     db_connexion = "mysql://bcpm:ddd@172.17.0.2/dados_empresas"
@@ -26,7 +23,8 @@ class SQL():
     # def search(self,search_params_dict):
     #     empresa =self.session.query(Empresas).filter_by(CNPJ = cnpj)
     # return list(empresa)
-
+    def connexion(self):
+        pass
     def insert_many(self, df, table):
         engine = create_engine(self.db_connexion)
         Session = sessionmaker(bind=engine)
@@ -52,7 +50,14 @@ class SQL():
 
 
 class MongoDB():
-    db = connexion_mongo()
+    # db = connexion_mongo()
+    def __init__(self):
+        self.db = self.connexion()
+
+    def connexion(self):
+        client = MongoClient(host)
+        db = client.dados_empresas
+        return db
 
     # def search(self, search_params_dict):
     #     """Essa função recebe um dicionário com os parâmetros a serem buscados.
@@ -108,7 +113,6 @@ class MongoDB():
         self.db.socios.create_index([('nome_socio', pymongo.ASCENDING)])
         self.db.socios.create_index([('cnpj', pymongo.ASCENDING)])
 
-    @classmethod
     def checkUpdateDate(self):
         update = self.db.atualizacao
         result = update.find(
@@ -139,5 +143,9 @@ class DB(MongoDB):
     def create_index(self):
         super().create_index()
 
-    # def checkUpdateDate(self):
-    #     super().checkUpdateDate()
+    def checkUpdateDate(self):
+        super().checkUpdateDate()
+
+    def connexion(self):
+        db = super().connexion()
+        return db

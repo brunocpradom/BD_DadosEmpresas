@@ -2,8 +2,8 @@ import os
 import glob
 
 rootPath = os.getcwd()
-data_path = rootPath + '/dados'
-zip_path = rootPath + '/zips'
+data_path = rootPath + '/tmp/dados'
+zip_path = rootPath + '/tmp/zips'
 csv_path = data_path + '/'
 socios_dir = data_path + '/socios'
 #---Lista contendo todos arquivos .ZIP
