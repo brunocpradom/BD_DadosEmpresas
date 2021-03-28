@@ -1,11 +1,15 @@
 import os
 import glob
+import csv
+import codecs
+
+from progress.bar import FillingSquaresBar
 
 from collectors.receita_federal import SiteRF
 from constants import estados, path
-from data.cleaner import Data_Processor
+from managers.cleaner import Data_Processor
 from database import DB
-from managers.processor import criando_parametros()
+from managers.processor import criando_parametros
 
 
 def check_for_update():
@@ -23,7 +27,6 @@ def create_directories():
         os.mkdir(path.zip_path)
     return True
 
-
 def init_update():
     urls = SiteRF().search_download_urls()
     for url in urls:
@@ -32,23 +35,28 @@ def init_update():
         Data_Processor.process_data_in_chunks()
         os.remove(path.zip_path + '/file.zip')
         separar_csv_por_cidade()
-        # Inserir socios
-        # inserir cnaes_secundarios
-        # Deletar CSVs
-    separar_csv_por_cidade()
+    insert_data_to_db()
+    socios_to_mongoDB()
+    cnaesecundario_to_mongoDB()
+    DB().create_index()
 
+def insert_data_to_db():
+    
+    for uf in estados.estados:
+        dir = str(path.csv_path) + '/' + uf
+        os.chdir(dir)
+        city_list_lenght = 0
+        for file in glob.glob('*.*'):
+            city_list_lenght +=1
 
-# Aqui devo iterar por todos os arquivos da pasta CSVs e jogar pro banco de dados
-for uf in estados.estados:
-    dir = str(path.csv_path) + '/' + uf
-    os.chdir(dir)
-    for file in glob.glob('*.*'):
-        try:
-            # bar.next()
-            DB().insert_many(file, 'empresas')
+        bar = FillingSquaresBar(uf, max = city_list_lenght)
+        for file in glob.glob('*.*'):
+            try:
+                bar.next()
+                DB().insert_many(file, 'empresas')
 
-        except:
-            pass
+            except:
+                pass
 
 def cnaesecundario_to_mongoDB():
     """Essa função insere o arquivo cnae_secundarios.csv no banco de dados mongoDB."""
@@ -88,3 +96,45 @@ def socios_to_mongoDB():
     criando_parametros()
 
 
+def separar_csv_por_cidade():
+    location = path.csv_path
+        
+    file = 'empresas.csv'
+    
+    with codecs.open(location + file,'r+','utf-8') as empresas:
+    
+        empresas = csv.reader(cleaned.replace('\0', '') for cleaned in empresas)
+    
+        next(empresas,None)
+    
+        count_sucesso = 0
+        count_erro = 0
+    
+        if not os.path.exists(location + 'UFs/'):
+            os.makedirs(location + 'UFs/')
+    
+        for empresa in empresas:
+    
+            uf = empresa[get_header_index('uf')]
+            municipio = empresa[get_header_index('municipio')]
+    
+            if not os.path.exists(location + 'UFs/' + uf):
+                os.makedirs(location + 'UFs/' + uf)
+    
+            try:
+                uf_file = open(location + 'UFs/' + uf + "/" + municipio + ".csv", "a+")
+            except:
+                uf_file = open(location + 'UFs/' + uf + "/" + municipio + ".csv", "w+")
+    
+            line = '"' + '","'.join(empresa) + '"\n'
+    
+            uf_file.writelines(line)
+    
+            try:
+                uf_file.writelines('"' + '","'.join(empresa) + '"\n')
+                count_sucesso += 1
+            except:
+                count_erro += 1
+                print('Erros de processamento: {}'.format(count_erro),end='\r')
+    
+            print('Empresas processadas: {}'.format(count_sucesso),end='\r')

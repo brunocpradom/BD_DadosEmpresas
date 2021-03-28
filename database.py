@@ -144,8 +144,9 @@ class DB(MongoDB):
         super().create_index()
 
     def checkUpdateDate(self):
-        super().checkUpdateDate()
-
+        dt = super().checkUpdateDate()
+        return dt
+        
     def connexion(self):
         db = super().connexion()
         return db

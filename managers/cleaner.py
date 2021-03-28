@@ -162,69 +162,69 @@ class Data_Processor:
                             index=False,
                             quoting=csv.QUOTE_NONNUMERIC)
                     
-    def read_cfwf(filepath_or_buffer, type_width, colspecs, names=None,
+    def read_cfwf(self,filepath_or_buffer, type_width, colspecs, names=None,
             dtype=None, chunksize=None, nrows=None, compression='infer',
             encoding=None):
-    '''Read complex fixed-width formatted lines, which are fixed-width formatted
-    files with different line types, each one possibly having different
-    colspecs, names and dtypes. Returns a dict of line type -> pandas.DataFrame.
+        '''Read complex fixed-width formatted lines, which are fixed-width formatted
+        files with different line types, each one possibly having different
+        colspecs, names and dtypes. Returns a dict of line type -> pandas.DataFrame.
 
-    Also supports optionally breaking of the file into chunks.
+        Also supports optionally breaking of the file into chunks.
 
-    Arguments:
-    filepath_or_buffer -- str, pathlib.Path, py._path.local.LocalPath or any
-        object with a read() method (such as a file handle or StringIO).
-    type_width -- int
-        Number of characters indicating the line type in the beginning of each 
-        line.
-    colspecs -- dict of line type -> list of pairs (int, int).
-        A dict of list of pairs (tuples) giving the extents of the fixed-width
-        fields of each line as half-open intervals (i.e., [from, to[ ), for each
-        line type. The line types included in the colspecs indicates which line 
-        types are supposed to be read. Lines with other types will be ignored.
-    names -- dict of line type -> list, default None
-        dict of list of column names to use, one list for each line type.
-    dtype -- dict of line type -> dict of column -> type, default None
-        Data type for columns, for each line type. If not specified for a
-        specific column, data will be kept as str.
-    chuncksize -- int, default None
-        If specified, break the file into chunks and returns a generator.
-    nrows -- int, default None
-        Limit the number of lines to be read.
-    '''
+        Arguments:
+        filepath_or_buffer -- str, pathlib.Path, py._path.local.LocalPath or any
+            object with a read() method (such as a file handle or StringIO).
+        type_width -- int
+            Number of characters indicating the line type in the beginning of each 
+            line.
+        colspecs -- dict of line type -> list of pairs (int, int).
+            A dict of list of pairs (tuples) giving the extents of the fixed-width
+            fields of each line as half-open intervals (i.e., [from, to[ ), for each
+            line type. The line types included in the colspecs indicates which line 
+            types are supposed to be read. Lines with other types will be ignored.
+        names -- dict of line type -> list, default None
+            dict of list of column names to use, one list for each line type.
+        dtype -- dict of line type -> dict of column -> type, default None
+            Data type for columns, for each line type. If not specified for a
+            specific column, data will be kept as str.
+        chuncksize -- int, default None
+            If specified, break the file into chunks and returns a generator.
+        nrows -- int, default None
+            Limit the number of lines to be read.
+        '''
 
-    # Calculate line width as the maximum 
-    # position number from the colspecs.
-    line_width = max([max(colspec)[1] for colspec in colspecs.values()])
+        # Calculate line width as the maximum 
+        # position number from the colspecs.
+        line_width = max([max(colspec)[1] for colspec in colspecs.values()])
 
-    # Read raw file as a two column dataframe, one column for the line type
-    # and the other column for the line content (to be split later).
-    raw_data = pd.read_fwf(filepath_or_buffer,
-                           colspecs=[(0,type_width),(type_width,line_width)],
-                           names=['line_type','_content'],
-                           dtype=str,
-                           header=None,
-                           delimiter='\t', # To avoid autostrip content
-                           chunksize=chunksize,
-                           nrows=nrows,
-                           compression=compression,
-                           encoding=encoding)
+        # Read raw file as a two column dataframe, one column for the line type
+        # and the other column for the line content (to be split later).
+        raw_data = pd.read_fwf(filepath_or_buffer,
+                               colspecs=[(0,type_width),(type_width,line_width)],
+                               names=['line_type','_content'],
+                               dtype=str,
+                               header=None,
+                               delimiter='\t', # To avoid autostrip content
+                               chunksize=chunksize,
+                               nrows=nrows,
+                               compression=compression,
+                               encoding=encoding)
 
-    if chunksize is None:
-        return _cfwf_chunck(raw_data, 
-                            type_width, 
-                            colspecs, 
-                            names, 
-                            dtype)
-    else:
-        return _cfwf_chunck_reader(raw_data, 
-                                   type_width, 
-                                   colspecs, 
-                                   names, 
-                                   dtype)
+        if chunksize is None:
+            return _cfwf_chunck(raw_data, 
+                                type_width, 
+                                colspecs, 
+                                names, 
+                                dtype)
+        else:
+            return _cfwf_chunck_reader(raw_data, 
+                                       type_width, 
+                                       colspecs, 
+                                       names, 
+                                       dtype)
 
 
-    def _cfwf_chunck(df, type_width, colspecs, names=None, dtype=None):
+    def _cfwf_chunck(self,df, type_width, colspecs, names=None, dtype=None):
 
         df.set_index('line_type', inplace=True)
 
@@ -263,7 +263,7 @@ class Data_Processor:
 
         return data_dict    
 
-    def _cfwf_chunck_reader(reader, type_width, colspecs, names=None, dtype=None):
+    def _cfwf_chunck_reader(self,reader, type_width, colspecs, names=None, dtype=None):
 
         for chunk in reader:
             yield _cfwf_chunck(chunk, type_width, colspecs, names, dtype)
